@@ -1,0 +1,14 @@
+{
+  "socketPath": "\\\\.\\pipe\\mcp-f5421324-385c-4fe3-935e-5a5e8dca9c6e.sock",
+  "scheme": "pipe",
+  "headers": {
+    "Authorization": "Nonce 9ac23634-b3e5-4b5d-9068-31945cdf19dc"
+  },
+  "pid": 18844,
+  "ideName": "Visual Studio Code",
+  "timestamp": 1774095865043,
+  "workspaceFolders": [
+    "c:\\Users\\LENOVO L390\\Downloads\\MO-IT101-Group-23-main"
+  ],
+  "isTrusted": true
+}
