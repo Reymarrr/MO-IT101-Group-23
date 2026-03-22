@@ -7,9 +7,13 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
-public class MotorPHv3 {
+public class MotorPHv4 {
     // Arlove code/code fix: changed the file paths to relative CSV names so the program works in the project folder.
     static final String EMPLOYEE_FILE = "Employee Details.csv";
     static final String ATTENDANCE_FILE = "Attendance Record.csv";
@@ -23,7 +27,55 @@ public class MotorPHv3 {
 
     // Arlove code/code fix: kept the required password in one constant so it is easier to maintain.
     static final String PASSWORD = "12345";
+    
+    // Arlove latest code/code fix (2026-03-22): added a shared attendance cache so payroll processing does not reread the CSV for every employee and month.
+    static Map<String, List<AttendanceRecord>> attendanceByEmployee;
 
+    // Arlove latest code/code fix (2026-03-22): grouped parsed attendance fields into one record so the cached data is easier to manage.
+    static class AttendanceRecord {
+        final LocalDate date;
+        final String logInText;
+        final String logOutText;
+
+        AttendanceRecord(LocalDate date, String logInText, String logOutText) {
+            this.date = date;
+            this.logInText = logInText;
+            this.logOutText = logOutText;
+        }
+    }
+
+    // Arlove latest code/code fix (2026-03-22): replaced the index-based payroll array with named fields to make the payroll output easier to read.
+    static class PayrollResult {
+        final double firstCutoffHours;
+        final double secondCutoffHours;
+        final double grossFirst;
+        final double grossSecond;
+        final double sss;
+        final double philHealth;
+        final double pagIbig;
+        final double tax;
+        final double totalDeductions;
+        final double netFirst;
+        final double netSecond;
+
+        PayrollResult(double firstCutoffHours, double secondCutoffHours, double grossFirst,
+                double grossSecond, double sss, double philHealth, double pagIbig, double tax,
+                double totalDeductions, double netFirst, double netSecond) {
+            this.firstCutoffHours = firstCutoffHours;
+            this.secondCutoffHours = secondCutoffHours;
+            this.grossFirst = grossFirst;
+            this.grossSecond = grossSecond;
+            this.sss = sss;
+            this.philHealth = philHealth;
+            this.pagIbig = pagIbig;
+            this.tax = tax;
+            this.totalDeductions = totalDeductions;
+            this.netFirst = netFirst;
+            this.netSecond = netSecond;
+        }
+    }
+
+    // Arlove code/code fix: changed the main flow so both valid usernames are checked before continuing.
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
 
@@ -189,6 +241,8 @@ public class MotorPHv3 {
 
     // Arlove code/code fix: added the all employees payroll flow using the same display format as one employee.
     static void showPayrollForAllEmployees() {
+        getAttendanceByEmployee();
+
         try (BufferedReader reader = new BufferedReader(new FileReader(EMPLOYEE_FILE))) {
             reader.readLine();
             String line;
@@ -225,32 +279,33 @@ public class MotorPHv3 {
         System.out.println("Hourly Rate   : PHP " + formatValue(hourlyRate));
         printSeparator("=");
 
+        // Arlove latest code/code fix (2026-03-22): switched the payroll display to use named PayrollResult fields instead of number indexes.
         for (int month = 6; month <= 12; month++) {
-            double[] payrollData = computeMonthlyPayroll(employeeNumber, hourlyRate, month);
+            PayrollResult payrollData = computeMonthlyPayroll(employeeNumber, hourlyRate, month);
             int lastDay = YearMonth.of(2024, month).lengthOfMonth();
 
             System.out.println();
             printSeparator("-");
             System.out.println("Cutoff Date       : " + getMonthName(month) + " 1 to " + getMonthName(month) + " 15");
-            System.out.println("Total Hours Worked: " + formatValue(payrollData[0]));
-            System.out.println("Gross Salary      : PHP " + formatValue(payrollData[2]));
-            System.out.println("Net Salary        : PHP " + formatValue(payrollData[9]));
+            System.out.println("Total Hours Worked: " + formatValue(payrollData.firstCutoffHours));
+            System.out.println("Gross Salary      : PHP " + formatValue(payrollData.grossFirst));
+            System.out.println("Net Salary        : PHP " + formatValue(payrollData.netFirst));
 
             System.out.println();
             printSeparator("-");
             System.out.println("Cutoff Date       : " + getMonthName(month) + " 16 to " + getMonthName(month) + " " + lastDay);
             System.out.println("Second payout includes all deductions.");
-            System.out.println("Total Hours Worked: " + formatValue(payrollData[1]));
-            System.out.println("Gross Salary      : PHP " + formatValue(payrollData[3]));
+            System.out.println("Total Hours Worked: " + formatValue(payrollData.secondCutoffHours));
+            System.out.println("Gross Salary      : PHP " + formatValue(payrollData.grossSecond));
             printSeparator(".");
             System.out.println("Each Deduction:");
-            System.out.println("SSS             : PHP " + formatValue(payrollData[4]));
-            System.out.println("PhilHealth      : PHP " + formatValue(payrollData[5]));
-            System.out.println("Pag-IBIG        : PHP " + formatValue(payrollData[6]));
-            System.out.println("Tax             : PHP " + formatValue(payrollData[7]));
+            System.out.println("SSS             : PHP " + formatValue(payrollData.sss));
+            System.out.println("PhilHealth      : PHP " + formatValue(payrollData.philHealth));
+            System.out.println("Pag-IBIG        : PHP " + formatValue(payrollData.pagIbig));
+            System.out.println("Tax             : PHP " + formatValue(payrollData.tax));
             printSeparator(".");
-            System.out.println("Total Deductions: PHP " + formatValue(payrollData[8]));
-            System.out.println("Net Salary      : PHP " + formatValue(payrollData[10]));
+            System.out.println("Total Deductions: PHP " + formatValue(payrollData.totalDeductions));
+            System.out.println("Net Salary      : PHP " + formatValue(payrollData.netSecond));
         }
         printSeparator("=");
     }
@@ -289,38 +344,25 @@ public class MotorPHv3 {
     }
 
     // Arlove code/code fix: deductions are now computed after combining the first and second cutoff gross salary.
-    static double[] computeMonthlyPayroll(String employeeNumber, double hourlyRate, int month) {
+    // Arlove latest code/code fix (2026-03-22): reused the cached attendance records here so monthly payroll no longer reopens the attendance file.
+    static PayrollResult computeMonthlyPayroll(String employeeNumber, double hourlyRate, int month) {
         double firstCutoffHours = 0;
         double secondCutoffHours = 0;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(ATTENDANCE_FILE))) {
-            reader.readLine();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) {
+        List<AttendanceRecord> attendanceRecords = getAttendanceByEmployee().get(employeeNumber);
+        if (attendanceRecords != null) {
+            for (AttendanceRecord record : attendanceRecords) {
+                if (record.date.getYear() != 2024 || record.date.getMonthValue() != month) {
                     continue;
                 }
 
-                String[] data = splitCsvLine(line);
-                if (data.length < 6 || !data[0].equals(employeeNumber)) {
-                    continue;
-                }
-
-                LocalDate recordDate = parseDate(data[3]);
-                if (recordDate == null || recordDate.getYear() != 2024 || recordDate.getMonthValue() != month) {
-                    continue;
-                }
-
-                double workedHours = computeWorkedHours(data[4], data[5]);
-                if (recordDate.getDayOfMonth() <= 15) {
+                double workedHours = computeWorkedHours(record.logInText, record.logOutText);
+                if (record.date.getDayOfMonth() <= 15) {
                     firstCutoffHours += workedHours;
                 } else {
                     secondCutoffHours += workedHours;
                 }
             }
-        } catch (IOException e) {
-            System.out.println("Error reading attendance file: " + e.getMessage());
         }
 
         double grossFirst = firstCutoffHours * hourlyRate;
@@ -340,19 +382,47 @@ public class MotorPHv3 {
         double netFirst = grossFirst;
         double netSecond = grossSecond - totalDeductions;
 
-        return new double[] {
-            firstCutoffHours,
-            secondCutoffHours,
-            grossFirst,
-            grossSecond,
-            sss,
-            philHealth,
-            pagIbig,
-            tax,
-            totalDeductions,
-            netFirst,
-            netSecond
-        };
+        return new PayrollResult(firstCutoffHours, secondCutoffHours, grossFirst, grossSecond,
+                sss, philHealth, pagIbig, tax, totalDeductions, netFirst, netSecond);
+    }
+
+    // Arlove latest code/code fix (2026-03-22): cached the attendance file once so all payroll reports reuse the same parsed records.
+    static Map<String, List<AttendanceRecord>> getAttendanceByEmployee() {
+        if (attendanceByEmployee != null) {
+            return attendanceByEmployee;
+        }
+
+        Map<String, List<AttendanceRecord>> loadedAttendance = new HashMap<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(ATTENDANCE_FILE))) {
+            reader.readLine();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                String[] data = splitCsvLine(line);
+                if (data.length < 6) {
+                    continue;
+                }
+
+                LocalDate recordDate = parseDate(data[3]);
+                if (recordDate == null) {
+                    continue;
+                }
+
+                loadedAttendance
+                    .computeIfAbsent(data[0], key -> new ArrayList<>())
+                    .add(new AttendanceRecord(recordDate, data[4], data[5]));
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading attendance file: " + e.getMessage());
+        }
+
+        attendanceByEmployee = loadedAttendance;
+        return attendanceByEmployee;
     }
 
     // Arlove code/code fix: kept the deduction methods procedural and separated for easier checking.
