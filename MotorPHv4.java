@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class MotorPHv4 {
-    // Arlove code/code fix: changed the file paths to relative CSV names so the program works in the project folder.
+    // Arlove code/code fix: Changed the file paths to relative CSV names so the program works in the project folder.
     static final String EMPLOYEE_FILE = "Employee Details.csv";
     static final String ATTENDANCE_FILE = "Attendance Record.csv";
 
