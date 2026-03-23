@@ -539,7 +539,10 @@ public class MotorPHv4 {
         }
     }
 
-
+    //Arlove code/code fix: added two-decimal display formatting to make the output easier to read.
+    static String formatValue(double value) {
+        return String.format("%.2f", value);
+    }        
 
     // Arlove code/code fix: added a reusable separator printer for cleaner console spacing and sections.
     static void printSeparator(String symbol) {
