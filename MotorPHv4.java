@@ -276,7 +276,7 @@ public class MotorPHv4 {
         System.out.println("Employee #    : " + employeeNumber);
         System.out.println("Employee Name : " + employeeName);
         System.out.println("Birthday      : " + birthday);
-        System.out.println("Hourly Rate   : PHP " + hourlyRate;
+        System.out.println("Hourly Rate   : PHP " + hourlyRate);
         printSeparator("=");
 
         // Arlove latest code/code fix (2026-03-22): switched the payroll display to use named PayrollResult fields instead of number indexes.
