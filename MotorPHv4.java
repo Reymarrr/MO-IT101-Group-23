@@ -276,7 +276,7 @@ public class MotorPHv4 {
         System.out.println("Employee #    : " + employeeNumber);
         System.out.println("Employee Name : " + employeeName);
         System.out.println("Birthday      : " + birthday);
-        System.out.println("Hourly Rate   : PHP " + (hourlyRate);
+        System.out.println("Hourly Rate   : PHP " + hourlyRate;
         printSeparator("=");
 
         // Arlove latest code/code fix (2026-03-22): switched the payroll display to use named PayrollResult fields instead of number indexes.
@@ -287,25 +287,25 @@ public class MotorPHv4 {
             System.out.println();
             printSeparator("-");
             System.out.println("Cutoff Date       : " + getMonthName(month) + " 1 to " + getMonthName(month) + " 15");
-            System.out.println("Total Hours Worked: " + (payrollData.firstCutoffHours);
-            System.out.println("Gross Salary      : PHP " + (payrollData.grossFirst);
-            System.out.println("Net Salary        : PHP " + (payrollData.netFirst);
+            System.out.println("Total Hours Worked: " + payrollData.firstCutoffHours);
+            System.out.println("Gross Salary      : PHP " + payrollData.grossFirst);
+            System.out.println("Net Salary        : PHP " + payrollData.netFirst);
 
             System.out.println();
             printSeparator("-");
             System.out.println("Cutoff Date       : " + getMonthName(month) + " 16 to " + getMonthName(month) + " " + lastDay);
             System.out.println("Second payout includes all deductions.");
-            System.out.println("Total Hours Worked: " + (payrollData.secondCutoffHours);
-            System.out.println("Gross Salary      : PHP " + (payrollData.grossSecond);
+            System.out.println("Total Hours Worked: " + payrollData.secondCutoffHours);
+            System.out.println("Gross Salary      : PHP " + payrollData.grossSecond);
             printSeparator(".");
             System.out.println("Each Deduction:");
-            System.out.println("SSS             : PHP " + (payrollData.sss);
-            System.out.println("PhilHealth      : PHP " + (payrollData.philHealth);
-            System.out.println("Pag-IBIG        : PHP " + (payrollData.pagIbig);
-            System.out.println("Tax             : PHP " + (payrollData.tax);
+            System.out.println("SSS             : PHP " + payrollData.sss);
+            System.out.println("PhilHealth      : PHP " + payrollData.philHealth);
+            System.out.println("Pag-IBIG        : PHP " + payrollData.pagIbig);
+            System.out.println("Tax             : PHP " + payrollData.tax);
             printSeparator(".");
-            System.out.println("Total Deductions: PHP " + (payrollData.totalDeductions);
-            System.out.println("Net Salary      : PHP " + (payrollData.netSecond);
+            System.out.println("Total Deductions: PHP " + payrollData.totalDeductions);
+            System.out.println("Net Salary      : PHP " + payrollData.netSecond);
         }
         printSeparator("=");
     }
